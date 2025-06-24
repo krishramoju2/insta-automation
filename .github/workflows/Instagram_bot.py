@@ -5,22 +5,25 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-USERNAME = 'selenium.bot.demo1'     # Replace with your dummy username
-PASSWORD = 'Selenium@12345'         # Replace with your dummy password
-TARGET_USER = 'cbitosc'             # The Instagram profile to visit
+# 🔒 Use dummy account
+USERNAME = 'selenium.bot.demo1'
+PASSWORD = 'Selenium@12345'
+TARGET_USER = 'cbitosc'
 
-# Optional: Uncomment the next line to run in headless mode (for Codespaces)
-# options.add_argument("--headless")
+# ✅ ChromeOptions for headless Codespaces execution
 options = webdriver.ChromeOptions()
-options.add_argument("--start-maximized")
-options.add_argument("--disable-notifications")
-options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--headless")  # Required in Codespaces
 options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
+options.add_argument("--disable-notifications")
+options.add_argument("--window-size=1920x1080")
 
+# ✅ Initialize WebDriver
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def login():
-    print("🔐 Logging in...")
+    print("🔐 Logging into Instagram...")
     driver.get("https://www.instagram.com/accounts/login/")
     time.sleep(5)
 
@@ -33,10 +36,10 @@ def login():
         not_now.click()
         time.sleep(3)
     except:
-        print("⚠️ 'Save Info' popup not found — skipping.")
+        print("⚠️ 'Save Info' popup not found or skipped.")
 
-def search_and_follow():
-    print(f"🔍 Navigating to {TARGET_USER} profile...")
+def go_to_profile_and_follow():
+    print(f"🔎 Navigating to profile: {TARGET_USER}")
     driver.get(f"https://www.instagram.com/{TARGET_USER}/")
     time.sleep(5)
 
@@ -46,17 +49,17 @@ def search_and_follow():
         print("✅ Followed the user.")
         time.sleep(2)
     except:
-        print("🔁 Already following or 'Follow' button not visible.")
+        print("🔁 Already following or button not available.")
 
 def extract_data():
-    print("📄 Extracting data...")
+    print("📋 Extracting bio and stats...")
     time.sleep(2)
 
     try:
         bio_element = driver.find_element(By.XPATH, "//div[contains(@class,'-vDIg') or contains(@class,'x7a106z')]")
         bio = bio_element.text.strip()
     except:
-        bio = "Bio not found."
+        bio = "No bio found."
 
     try:
         stats = driver.find_elements(By.XPATH, "//ul[contains(@class,'x78zum5')]/li")
@@ -73,10 +76,15 @@ def extract_data():
         file.write(f"Followers: {followers}\n")
         file.write(f"Following: {following}\n")
 
-    print("✅ profile_info.txt generated successfully!")
+    print("✅ profile_info.txt successfully generated!")
+
+def main():
+    try:
+        login()
+        go_to_profile_and_follow()
+        extract_data()
+    finally:
+        driver.quit()
 
 if __name__ == "__main__":
-    login()
-    search_and_follow()
-    extract_data()
-    driver.quit()
+    main()
